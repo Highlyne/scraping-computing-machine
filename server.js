@@ -7,15 +7,31 @@
 var express = require("express");
 var cheerio = require("cheerio");
 var request = require("request");
+var mongoose = require("mongoose");
+var bodyParser = require("body-parser");
+var logger = require("morgan");
 
 // Sets up the Express App
 // =============================================================
 var app = express();
 var PORT = process.env.PORT || 8080;
 
-// Routes for page view and api use
-// =============================================================
-require("./routes/htmlRoutes")(app);
+// Connect to the Mongo DB and tell mongoose to use promises as callbacks
+// ==============================================================
+mongoose.Promise = Promise;
+mongoose.connect("mongodb://localhost/nprscraperdb", {
+  useMongoClient: true
+});
+
+// Use morgan logger for logging requests
+// =============================================
+app.use(logger("dev"));
+// Use body-parser for handling form submissions
+// ======================================================
+app.use(bodyParser.urlencoded({ extended: false }));
+// Use express.static to serve the public folder as a static directory
+// =======================================================
+app.use(express.static("public"));
 
 // Add site to be scraped
 request("https://www.npr.org/sections/business/", function(error, response, html) {
