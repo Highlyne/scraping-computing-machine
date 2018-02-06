@@ -5,23 +5,26 @@
 // Dependencies
 // =============================================================
 var express = require("express");
-var cheerio = require("cheerio");
-var request = require("request");
-var mongoose = require("mongoose");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
+var mongoose = require("mongoose");
 
-// Sets up the Express App
+// Set up the Express App
 // =============================================================
 var app = express();
 var PORT = process.env.PORT || 8080;
+
+// Set up handlebars
+// ================================================================
+var exphbs = require("express-handlebars");
+app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+app.set("view engine", "handlebars");
 
 // Connect to the Mongo DB and tell mongoose to use promises as callbacks
 // ==============================================================
 mongoose.Promise = Promise;
 mongoose.connect("mongodb://localhost/nprscraperdb", {
-  useMongoClient: true
-});
+  useMongoClient: true });
 
 // Use morgan logger for logging requests
 // =============================================
@@ -29,34 +32,18 @@ app.use(logger("dev"));
 // Use body-parser for handling form submissions
 // ======================================================
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(bodyParser.text());
+app.use(bodyParser.json({ type: 'application/vnd.api+json'}));
+
 // Use express.static to serve the public folder as a static directory
 // =======================================================
 app.use(express.static("public"));
 
-// Add site to be scraped
-request("https://www.npr.org/sections/business/", function(error, response, html) {
-
-// Cheerio will load all of the site and saving it to a variable called $
-    var $ = cheerio.load(html);
-
-// Now put everything "scraped" from site and put it into the results array
-    var results = [];
-
-// Now tell cheerio what to target
-$("h2.title").each(function(i, element) {
-    var link = $(element).children().attr("href");
-    var title = $(element).text();
-
-// Save these results in an object that we'll push into the results array we defined earlier
-results.push({
-    title: title,
-    link: link
-  });
-    // results.push(element);
-    });
-// Log the results
-    console.log(results);
-});
+// Import routes to give the server access to them.
+// ================================================================
+var routes = require("/routes.js");
+app.use(routes);
 
 
 // Starting our Express app
