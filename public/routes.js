@@ -7,10 +7,25 @@ var controller = require("./user.js");
 module.exports = function(app) {
   // Routes
   // ======================================================================
-  app.get("/", function(req, res) {
-      res.render("index");
-      });
-  
+  app.get("/", function(req, res) {  
+      // Grab every doc in the Articles array
+      db.Article.find({})
+      .then(function(data) {
+        // res.json(data);
+       
+        // Log any errors
+        if (data.length === 0) {
+          res.render("noArts", {alert: "No articles available.  Click the Scrape button at the top of the page"});
+        }
+        // Or send the doc to the browser as a json object
+        else {
+          res.render("index", {articles: data});
+        }
+      })
+      .catch(function(err) {
+        res.json(err);
+    });
+  });
 
   // A GET route for scraping the NPR website
   app.get("/scrape", function(req, res) {
@@ -20,81 +35,79 @@ module.exports = function(app) {
         var $ = cheerio.load(response.data);
         // Now tell cheerio what to target
         $("h2.title").each(function(i, element) {
-          // var link = $(element).children().attr("href");
-          // var title = $(element).text();
-          // console.log("Test to see if cheerio pulled out link:" + link);
-          // console.log("Test to see if cheerio pulled out link:" + title);
           // Save an empty result object
           var result = {};
           result.title = $(element).text();
           result.link = $(element).children().attr("href");
-          // console.log("Test to see result information:");
           // console.log("result", result);
-
           // Create a new item in the Article collections model using the `result` object built from scraping
           db.Article.create(result)
             .then(function(articles) {
               // View the added result in the console
-              console.log(articles);
-            })
+              // console.log(articles);
+              var news = result;
+              console.log("news", news);
+                })
             .catch(function(err) {
               // If an error occurred, send it to the client
               return res.json(err);
             });
-      });
       // If we were able to successfully scrape and save an Article, send a message to the client
-        res.send("Scrape Complete");
+      console.log("Scrape finished.");
+		    res.redirect("/");
+      });
     });
   });
 //   // Route for getting all Articles from the db
-//   app.get("/articles", function(req, res) {
-//     // Grab every document in the Articles collection
-//     db.Article.find({})
-//       .then(function(dbArticle) {
-//         // If we were able to successfully find Articles, send them back to the client
-//         res.json(dbArticle);
-//       })
-//       .catch(function(err) {
-//         // If an error occurred, send it to the client
-//         res.json(err);
-//       });
-//   });
+  app.get("/saved", function(req, res) {
+    // Grab every document in the Articles collection
+    db.Article.find({issaved: true}, null, {sort: {created: -1}}, function(err, data) {
+      if(data.length === 0) {
+        res.render("noArts", {alert: "There are no saved articles. Click the save Article button."});
+      }
+      else {
+        res.render("savedArts", {saved: data});
+      }
+    });
+  });
 
-//   // Route for grabbing a specific Article by id, populate it with it's note
-//   app.get("/articles/:id", function(req, res) {
-//     // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
-//     db.Article.findOne({ _id: req.params.id })
-//       // ..and populate all of the notes associated with it
-//       .populate("note")
-//       .then(function(dbArticle) {
-//         // If we were able to successfully find an Article with the given id, send it back to the client
-//         res.json(dbArticle);
-//       })
-//       .catch(function(err) {
-//         // If an error occurred, send it to the client
-//         res.json(err);
-//       });
-//   });
+app.post("/save/:id", function(req, res) {
+	db.Article.findById(req.params.id, function(err, data) {
+		if (data.issaved) {
+			db.Article.findByIdAndUpdate(req.params.id, {$set: {issaved: false, status: "Save Article"}}, {new: true}, function(err, data) {
+				res.redirect("/");
+			});
+		}
+		else {
+			db.Article.findByIdAndUpdate(req.params.id, {$set: {issaved: true, status: "Saved"}}, {new: true}, function(err, data) {
+				res.redirect("/saved");
+			});
+		}
+	});
+});
 
-//   // Route for saving/updating an Article's associated Note
-//   app.post("/articles/:id", function(req, res) {
-//     // Create a new note and pass the req.body to the entry
-//     db.Note.create(req.body)
-//       .then(function(dbNote) {
-//         // If a Note was created successfully, find one Article with an `_id` equal to `req.params.id`. Update the Article to be associated with the new Note
-//         // { new: true } tells the query that we want it to return the updated User -- it returns the original by default
-//         // Since our mongoose query returns a promise, we can chain another `.then` which receives the result of the query
-//         return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
-//       })
-//       .then(function(dbArticle) {
-//         // If we were able to successfully update an Article, send it back to the client
-//         res.json(dbArticle);
-//       })
-//       .catch(function(err) {
-//         // If an error occurred, send it to the client
-//         res.json(err);
-//       });
-//   });
+// Route for saving/updating an Article's associated Note
+app.post("/articles/:id", function(req, res) {
+  // Create a new note and pass the req.body to the entry
+  db.Note.create(req.body)
+    .then(function(dbNote) {
+      return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+    })
+    .then(function(dbArticle) {
+      // If we were able to successfully update an Article, send it back to the client
+      alert("Note has been added");
+      res.render("/");
+    })
+    .catch(function(err) {
+      // If an error occurred, send it to the client
+      res.json(err);
+    });
+});
+
+app.get("/note/:id", function(req, res) {
+	var id = req.params.id;
+	db.Article.findOne({_id: id}).then(function(data) {
+		res.render("notes", {title: data.title, link: data.link, id: data._id});
+	});
+});
 };
-  // // Export routes for server.js to use.
-  // module.exports = routes;

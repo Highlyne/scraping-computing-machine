@@ -1,0 +1,25 @@
+{{!-- The area to add the articles --}}
+<div class="row">
+    <div class="col s12">
+        <form>
+            <div id="note-displayer">
+                <h2>Note</h2>
+                <h3>Article:
+                    <a href="{{link}}">{{title}}</a>
+                </h3>
+                <div id="note">
+                    <input type="text" placeholder="Note Title" name="title" id="note-title">
+                    <br>
+                    <label for="note-body">Note</label>
+                    <br>
+                    <textarea rows="7" placeholder="Text" id="note-body"></textarea>
+                    <br>
+                    <button type="submit" formaction="/articles/{{id}}">
+                        <i class="material-icons">add</i>Save Note</button>
+                    <button type="button" id="close-note">
+                        <i class="material-icons">eject</i>Delete</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
