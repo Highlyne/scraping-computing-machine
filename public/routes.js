@@ -11,9 +11,6 @@ module.exports = function(app) {
       // Grab every doc in the Articles array
       db.Article.find({})
       .then(function(data) {
-        // res.json(data);
-       
-        // Log any errors
         if (data.length === 0) {
           res.render("noArts", {alert: "No articles available.  Click the Scrape button at the top of the page"});
         }
@@ -70,6 +67,7 @@ module.exports = function(app) {
       }
     });
   });
+
 
 app.post("/save/:id", function(req, res) {
 	db.Article.findById(req.params.id, function(err, data) {

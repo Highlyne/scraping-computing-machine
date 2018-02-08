@@ -27,7 +27,7 @@ app.set("view engine", "handlebars");
 // mongoose.connect("mongodb://localhost/nprscraperdb");
 
 mongoose.Promise = Promise;
-mongoose.connect(MONGODB_URI, {useMongoClient: true});
+mongoose.connect(MONGODB_URI);
 // Use morgan logger for logging requests
 // =============================================
 app.use(logger("dev"));
