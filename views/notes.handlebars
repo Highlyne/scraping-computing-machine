@@ -2,24 +2,33 @@
 <div class="row">
     <div class="col s12">
         <form>
-            <div id="note-displayer">
-                <h2>Note</h2>
-                <h3>Article:
-                    <a href="{{link}}">{{title}}</a>
-                </h3>
-                <div id="note">
-                    <input type="text" placeholder="Note Title" name="title" id="note-title">
-                    <br>
-                    <label for="note-body">Note</label>
-                    <br>
-                    <textarea rows="7" placeholder="Text" id="note-body"></textarea>
-                    <br>
-                    <button type="submit" formaction="/articles/{{id}}">
-                        <i class="material-icons">add</i>Save Note</button>
-                    <button type="button" id="close-note">
-                        <i class="material-icons">eject</i>Delete</button>
-                </div>
+            <h2>Note</h2>
+            <article>
+                <a href="{{link}}">{{title}}</a>
+            </article>
+            <h3>Article Id: <span id="article-ID">{{articleID}}</span></h3>
+            <h3>Article Id: <span id="article-ID">{{notes}}</span></h3>
+            <div id="note">
+                <input type="text" placeholder="Note Title" name="title" id="note-title">
+                <br>
+                <label for="note-body">Note</label>
+                <br>
+                <textarea rows="7" placeholder="Text" id="note-body"></textarea>
+                <br>
+                <button id="newNote">
+                    <i class="material-icons">add</i>Save Note</button>
+                <button type="button" id="close-note">
+                    <i class="material-icons">eject</i>Delete</button>
             </div>
         </form>
+        <div id="note-displayer">
+            {{#each notes}}
+                <h2>Notes:</h2>
+                {{notes.title}}
+                {{notes.body}}
+            {{/each}}
+        </div>
+
+
     </div>
 </div>

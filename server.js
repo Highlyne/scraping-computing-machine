@@ -23,11 +23,9 @@ app.set("view engine", "handlebars");
 
 // Connect to the Mongo DB and tell mongoose to use promises as callbacks
 // ==============================================================
-// mongoose.Promise = Promise;
-// mongoose.connect("mongodb://localhost/nprscraperdb");
-
 mongoose.Promise = Promise;
-mongoose.connect(MONGODB_URI);
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
+
 // Use morgan logger for logging requests
 // =============================================
 app.use(logger("dev"));
@@ -44,7 +42,7 @@ app.use(express.static("public"));
 
 // Import routes to give the server access to them.
 // ================================================================
-require("./public/routes")(app);
+require("./routes/routes")(app);
 
 // Starting our Express app
 // =============================================================

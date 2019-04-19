@@ -11,8 +11,12 @@ var NoteSchema = new Schema({
   },
   // `body` is of type String
   body: { type: String,
-    required: true,
-}
+    required: true
+  },
+  articleID: {
+    type: String,
+    required: true
+  }
 });
 
 // This creates our model from the above schema, using mongoose's model method

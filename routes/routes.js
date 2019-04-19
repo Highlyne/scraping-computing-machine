@@ -2,28 +2,28 @@
 var db = require("../models");
 var axios = require("axios");
 var cheerio = require("cheerio");
-var controller = require("./js/logic.js/index.js.js");
+var articleController = require("../controllers/article-controller");
+var noteController = require("../controllers/note-controller");
 
 module.exports = function(app) {
   // Routes
   // ======================================================================
   app.get("/", function(req, res) {  
       // Grab every doc in the Articles array
-      db.Article.find({})
-      .then(function(data) {
-        if (data.length === 0) {
+      articleController.all(function (cb){
+        if (cb.length === 0) {
           res.render("noArts", {alert: "No articles available.  Click the Scrape button at the top of the page"});
         }
         // Or send the doc to the browser as a json object
         else {
-          res.render("index", {articles: data});
+          res.render("index", {articles: cb});
         }
       })
-      .catch(function(err) {
-        res.json(err);
-    });
   });
 
+  app.get("/:pageNumber", articleController.all);
+   
+    
   // A GET route for scraping the NPR website
   app.get("/scrape", function(req, res) {
       // First, we grab the body of the html with request
@@ -84,29 +84,34 @@ app.post("/save/:id", function(req, res) {
 	});
 });
 
-// Route for saving/updating an Article's associated Note
-app.post("/articles/:id", function(req, res) {
-
-  // Create a new note and pass the req.body to the entry
-  db.Note.create(req.body)
-    .then(function(dbNote) {
-      return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
-    })
-    .then(function(dbArticle) {
-      // If we were able to successfully update an Article, send it back to the client
-      alert("Note has been added");
-      res.render("/");
-    })
-    .catch(function(err) {
-      // If an error occurred, send it to the client
-      res.json(err);
-    });
+// Route for saving an Article's associated Note
+app.post("/newNote", function(req, res) {
+  noteController.addNote(req.body, function(cb){
+    console.log(cb);
+  })
+  // .then(function(dbNote) {
+  //     return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+  //   })
+  //   .then(function() {
+  //     // If we were able to successfully update an Article, send it back to the client
+  //     alert("Note has been added");
+  //     res.render("/");
+  //   })
+  //   .catch(function(err) {
+  //     // If an error occurred, send it to the client
+  //     res.json(err);
+  //   });
 });
 
 app.get("/note/:id", function(req, res) {
-	var id = req.params.id;
-	db.Article.findOne({_id: id}).then(function(data) {
-		res.render("notes", {title: data.title, link: data.link, id: data._id});
+  let articleID = req.params.id;
+	noteController.allNotes(articleID,function(oneNote) {
+		res.render("notes", {title: oneNote.title, link: oneNote.link, articleID:id, notes: oneNote.note});
+	});
+});
+app.get("/notes", function(req, res) {
+	noteController.allNotes(function(notes) {
+		res.render("notes", {title: notes.title, link: oneNote.link, id: oneNote._id, articleID:id});
 	});
 });
 };
